@@ -1,0 +1,54 @@
+# 基础 Node.js 项目忽略规则
+node_modules/
+dist/
+build/
+
+# 忽略存储敏感信息的文件
+.env
+.senv
+.env.*
+*.env
+
+# 忽略自动生成的文档
+docs/api/
+docs/build/
+
+# 日志文件
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 测试相关
+coverage/
+.nyc_output/
+
+# 编辑器/IDE 配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 调试文件
+debug.log
+*.pid
+
+# 包管理器锁定文件
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# 系统文件
+Thumbs.db
+Desktop.ini
+.DS_Store
+Thumbs.db
+
+# 本地开发临时文件
+tmp/
+temp/
+**/tmp
+**/temp
+**/build
+**/dist
