@@ -8,6 +8,7 @@ build/
 .senv
 .env.*
 *.env
+!.env.example
 
 # 忽略自动生成的文档
 docs/api/
