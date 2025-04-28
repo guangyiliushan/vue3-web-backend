@@ -8,18 +8,21 @@ datasource db {
 }
 
 model User {
-    id       String  @id @default(uuid())
-    email    String  @unique
-    password String
-    username String?
+    id        String   @id @default(uuid())
+    email     String   @unique
+    password  String
+    salt      String
+    username  String?  @default(cuid())
+    createdAt DateTime @default(now())
 }
 
 model Post {
-    id        String   @id @default(uuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    title     String
-    content   String?
-    published Boolean  @default(false)
-    viewCount Int      @default(0)
+    id         String   @id @default(uuid())
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    title      String
+    content    String?
+    timeToRead Int      @default(0)
+    viewCount  Int      @default(0)
+    timeCount  Int      @default(0)
 }

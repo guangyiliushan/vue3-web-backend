@@ -1,6 +1,7 @@
 // routes/user.ts
 import { Router, Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { registerUser } from '../controllers/users';
+
 
 
 const router = Router();
@@ -16,7 +17,7 @@ router.get('/', (req: Request, res: Response) => {
   res.json({ message: 'api user page' });
 })
 
-router.post('/register', 
-);
+// router.post('/register', registerUser);
+
 
 export default router;
