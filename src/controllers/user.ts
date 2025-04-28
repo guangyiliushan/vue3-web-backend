@@ -6,16 +6,14 @@ const prisma = new PrismaClient();
 
 export const registerUser = async (req: Request, res: Response) => {
     const { email, password, salt } = req.body;
-  
     if (!email || !password || !salt) {
       return res.status(400).json({ error: 'Email, password, and salt are required.' });
     }
-  
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email is already in use.' });
+    }
     try {
-      const existingUser = await prisma.user.findUnique({ where: { email } });
-      if (existingUser) {
-        return res.status(400).json({ error: 'Email is already in use.' });
-      }
       const newUser = await prisma.user.create({
         data: {
           email,
@@ -23,7 +21,6 @@ export const registerUser = async (req: Request, res: Response) => {
           salt,
         },
       });
-  
       return res.status(201).json({ message: 'User registered successfully.', user: { id: newUser.id, email: newUser.email } });
     } catch (error) {
       console.error(error);
