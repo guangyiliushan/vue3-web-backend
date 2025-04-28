@@ -1,6 +1,6 @@
 // routes/user.ts
 import { Router, Request, Response, NextFunction } from 'express';
-import { registerUser } from '../controllers/users';
+import { registerUser } from '@controllers/user';
 
 
 
@@ -17,7 +17,13 @@ router.get('/', (req: Request, res: Response) => {
   res.json({ message: 'api user page' });
 })
 
-// router.post('/register', registerUser);
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await registerUser(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 
 export default router;

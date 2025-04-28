@@ -3,16 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./dist/app.js",
+    "start": "node -r tsconfig-paths/register ./dist/app.js",
     "build": "tsc",
-    "dev": "ts-node-dev ./src/app.ts"
+    "dev": "ts-node-dev -r tsconfig-paths/register ./src/app.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
     "@types/cors": "^2.8.17",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "pg": "^8.15.5"
+    "pg": "^8.15.5",
+    "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",

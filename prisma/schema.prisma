@@ -25,4 +25,6 @@ model Post {
     timeToRead Int      @default(0)
     viewCount  Int      @default(0)
     timeCount  Int      @default(0)
+    category   String?
+    tags       String[]
 }
