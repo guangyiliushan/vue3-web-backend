@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 // import bcrypt from 'bcrypt';
-
+import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
+const PRIVATE_KEY = process.env.PRIVATE_KEY || 'your_private_key';
 
 export const registerUser = async (req: Request, res: Response) => {
     const { email, password, salt } = req.body;
@@ -21,7 +22,9 @@ export const registerUser = async (req: Request, res: Response) => {
           salt,
         },
       });
-      return res.status(201).json({ message: 'User registered successfully.', user: { id: newUser.id, email: newUser.email } });
+      // 生成token
+      const token = jwt.sign({ id: newUser.id, email: newUser.email }, PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '7d' });
+      return res.status(201).json({ message: 'User registered successfully.', user: { id: newUser.id, email: newUser.email }, token });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal server error.' });
