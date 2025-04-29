@@ -3,8 +3,6 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { registerUser , loginUser , getSalt } from '@controllers/user';
 import { authMiddleware } from '@middlewares/auth';
 
-
-
 const router = Router();
 
 router.get('/', (req: Request, res: Response) => {
@@ -26,7 +24,6 @@ router.post('/salt', async (req: Request, res: Response, next: NextFunction) => 
     next(error);
   }
 });
-
 
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
   try {

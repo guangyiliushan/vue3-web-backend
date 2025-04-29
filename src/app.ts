@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
+import baseRoutes from './routes/index';
 import userRoutes from './routes/user';
 
 const app = express();
@@ -15,10 +16,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use('/user', userRoutes);
-
-app.get('/', (req: Request, res: Response) => {
-  res.json({ status: 'API is running on /api' });
-});
+app.use('/', baseRoutes);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

@@ -22,10 +22,16 @@ export const registerUser = async (req: Request, res: Response) => {
         salt,
       },
     });
-    return res.status(201).json({ message: 'User registered successfully.', user: { id: newUser.id, email: newUser.email } });
-  } catch (error) {
+    return res.status(201).json({
+      message: 'User registered successfully.',
+      user: { id: newUser.id, email: newUser.email },
+    });
+  } catch (error: any) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error.' });
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'A user with this email already exists.' });
+    }
+    return res.status(500).json({ error: error.message || 'Internal server error.' });
   }
 };
 
