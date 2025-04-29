@@ -1,9 +1,15 @@
-var express = require('express');
-var router = express.Router();
+// routes/index.ts
+import { Router, Request, Response } from 'express';
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+const router = Router();
+
+router.get('/', (req: Request, res: Response) => {
+  res.json({ status: 'API is running on /api' });
 });
 
-module.exports = router;
+router.get('/test', (req: Request, res: Response) => {
+  res.json({ message: 'Hello World!' });
+});
+
+export default router;
+

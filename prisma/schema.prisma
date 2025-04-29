@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @map("user_id")
+  email     String   @unique @map("email")
+  password  String   @map("password")
+  salt      String   @map("salt")
+  username  String?  @default(cuid()) @map("username")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("user")
+}
+
+model Post {
+  id         String   @id @default(uuid()) @map("post_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  title      String   @map("title")
+  content    String?  @map("content")
+  timeToRead Int      @default(0) @map("time_to_read")
+  viewCount  Int      @default(0) @map("view_count")
+  category   String?  @map("category") @db.VarChar(50)
+  tags       String[] @map("tags") @db.VarChar(20)
+
+  @@index([category])
+  @@index([tags])
+  @@map("post")
+}
