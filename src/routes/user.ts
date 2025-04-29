@@ -1,6 +1,6 @@
 // routes/user.ts
 import { Router, Request, Response, NextFunction } from 'express';
-import { registerUser } from '@controllers/user';
+import { registerUser , loginUser , getSalt } from '@controllers/user';
 import { authMiddleware } from '@middlewares/auth';
 
 
@@ -14,6 +14,23 @@ router.get('/', (req: Request, res: Response) => {
 router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
   try {
     await registerUser(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/salt', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await getSalt(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await loginUser(req, res);
   } catch (error) {
     next(error);
   }
