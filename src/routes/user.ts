@@ -1,7 +1,6 @@
 // routes/user.ts
 import { Router, Request, Response, NextFunction } from 'express';
-import { registerUser , loginUser , getSalt } from '@controllers/user';
-import { authMiddleware } from '@middlewares/auth';
+import { registerUser , loginUser , getSalt ,getUser} from '@controllers/user';
 
 const router = Router();
 
@@ -33,13 +32,12 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
-router.post('/auth', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await authMiddleware(req, res, next);
+    await getUser(req, res);
   } catch (error) {
     next(error);
   }
 });
-
 
 export default router;

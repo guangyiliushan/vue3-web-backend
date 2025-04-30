@@ -79,13 +79,22 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-export const verifyToken = (token: string): boolean => {
+export const getUser = async (req: Request, res: Response) => {
+  const { id, email } = req.body.user;
+  if (!id && !email) {
+    return res.status(400).json({ error: 'User ID or email is required.' });
+  }
   try {
-    const publicKey = getPublicKey();
-    jwt.verify(token, publicKey, { algorithms: ['RS256'] });
-    return true;
+    const user = await prisma.user.findUnique({
+      where: id ? { id } : { email },
+      select: { id: true, email: true, username: true, createdAt: true },
+    });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    return res.status(200).json({ user });
   } catch (error) {
-    console.error('Token verification failed:', error);
-    return false;
+    console.error(error);
+    return res.status(500).json({ error: 'Internal server error.' });
   }
 };
