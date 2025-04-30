@@ -13,7 +13,6 @@ export function generateKeyPair() {
   fs.writeFileSync(PUBLIC_KEY_PATH, publicKey.export({ type: 'spki', format: 'pem' }));
 }
 
-// 获取私钥
 export function getPrivateKey(): string {
   if (!fs.existsSync(PRIVATE_KEY_PATH)) {
     generateKeyPair();

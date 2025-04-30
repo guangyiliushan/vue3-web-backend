@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 // import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
-import { getPrivateKey } from '@utils/key';
+import { getPrivateKey , getPublicKey } from '@utils/key';
 
 export const registerUser = async (req: Request, res: Response) => {
   const { email, password, salt } = req.body;
@@ -63,12 +63,29 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Email not found.' });
     }
     if (user.password !== password) {
-      return res.status(401).json({ error: 'Invalid password.' }); 
+      return res.status(401).json({ error: 'Invalid password.' });
     }
-    // const token = jwt.sign({ id: user.id, email: user.email }, getPrivateKey()!, { expiresIn: '1h' });
-    return res.status(200).json({ message: 'Login successful.'});
+    const privateKey = getPrivateKey();
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      privateKey,
+      { algorithm: 'RS256', expiresIn: '1h' }
+    );
+
+    return res.status(200).json({ message: 'Login successful.', token });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal server error.' });
   }
-}
+};
+
+export const verifyToken = (token: string): boolean => {
+  try {
+    const publicKey = getPublicKey();
+    jwt.verify(token, publicKey, { algorithms: ['RS256'] });
+    return true;
+  } catch (error) {
+    console.error('Token verification failed:', error);
+    return false;
+  }
+};
