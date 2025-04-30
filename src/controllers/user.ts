@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 // import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
-import { getPublicKey } from '@utils/key';
+import { getPrivateKey } from '@utils/key';
 
 export const registerUser = async (req: Request, res: Response) => {
   const { email, password, salt } = req.body;
@@ -43,7 +43,7 @@ export const getSalt = async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
+      return res.status(404).json({ error: 'Email not found.' });
     }
     return res.status(200).json({ salt: user.salt });
   }catch (error) {
@@ -60,14 +60,13 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Email not found.' });
     }
-    // const isPasswordValid = await bcrypt.compare(password, user.password);
-    // if (!isPasswordValid) {
-    //   return res.status(401).json({ error: 'Invalid email or password.' });
-    // }
-    const token = jwt.sign({ id: user.id, email: user.email }, getPublicKey()!, { expiresIn: '1h' });
-    return res.status(200).json({ message: 'Login successful.', token });
+    if (user.password !== password) {
+      return res.status(401).json({ error: 'Invalid password.' }); 
+    }
+    // const token = jwt.sign({ id: user.id, email: user.email }, getPrivateKey()!, { expiresIn: '1h' });
+    return res.status(200).json({ message: 'Login successful.'});
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal server error.' });
