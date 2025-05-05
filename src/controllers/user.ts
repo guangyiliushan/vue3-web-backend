@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 // import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
-import { getPrivateKey , getPublicKey } from '@utils/key';
+import { getPrivateKey , getSymmetricKey } from '@utils/key';
 
 export const registerUser = async (req: Request, res: Response) => {
   const { email, password, salt } = req.body;
@@ -66,13 +66,19 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid password.' });
     }
     const privateKey = getPrivateKey();
+    const symmetricKey = getSymmetricKey();
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id},
+      symmetricKey,
+      { algorithm: 'HS256', expiresIn: '1h' }
+    );
+    const refreshToken =jwt.sign(
+      { id: user.id},
       privateKey,
-      { algorithm: 'RS256', expiresIn: '1h' }
+      { algorithm: 'RS256', expiresIn: '7d' }
     );
 
-    return res.status(200).json({ message: 'Login successful.', token });
+    return res.status(200).json({ message: 'Login successful.', token , refreshToken });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal server error.' });
@@ -80,13 +86,13 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 export const getUser = async (req: Request, res: Response) => {
-  const { id, email } = req.body.user;
-  if (!id && !email) {
-    return res.status(400).json({ error: 'User ID or email is required.' });
+  const { id } = req.body.user;
+  if (!id ) {
+    return res.status(400).json({ error: 'User ID is required.' });
   }
   try {
     const user = await prisma.user.findUnique({
-      where: id ? { id } : { email },
+      where: { id },
       select: { id: true, email: true, username: true, createdAt: true },
     });
     if (!user) {
