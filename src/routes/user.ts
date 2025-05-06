@@ -1,6 +1,6 @@
 // routes/user.ts
 import { Router, Request, Response, NextFunction } from 'express';
-import { registerUser , loginUser , getSalt ,getUser} from '@controllers/user';
+import { registerUser , loginUser , getSalt ,getUser, updateUsername, updateEmail, updatePassword } from '@controllers/user';
 
 const router = Router();
 
@@ -39,5 +39,31 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 });
+
+router.put('/update/username', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await updateUsername(req, res);
+  }
+  catch (error) {
+    next(error); 
+  }
+});
+
+router.put('/update/email', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await updateEmail(req, res);
+  } catch (error) {
+    next(error); 
+  } 
+});
+
+router.put('/update/password', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await updatePassword(req, res);
+  } catch (error) {
+    next(error); 
+  } 
+})
+
 
 export default router;
