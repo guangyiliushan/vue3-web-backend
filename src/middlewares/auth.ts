@@ -24,7 +24,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const jwtMiddleware = expressjwt({
       secret: getSymmetricKey(),
       algorithms: ['HS256'],
-      requestProperty: 'body.user',
+      requestProperty: 'body.auth',
     });
 
     await new Promise<void>((resolve, reject) => {

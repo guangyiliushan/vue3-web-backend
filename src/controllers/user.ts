@@ -7,17 +7,22 @@ import { verifyEmailCode } from "@middlewares/verifyCode";
 const prisma = new PrismaClient();
 
 export const registerUser = async (req: Request, res: Response) => {
-  const { email, password, salt } = req.body;
-  if (!email || !password || !salt) {
+  const { email, password, salt, verifyCode } = req.body;
+  if (!email || !password || !salt || !verifyCode) {
     return res
       .status(400)
-      .json({ error: "Email, password, and salt are required." });
+      .json({ error: "Email, password, verifyCode and salt are required." });
   }
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ error: "Email is already in use." });
     }
+
+    req.body.user = { id: "register", };
+    req.body.verify = { email, code: verifyCode };
+    await verifyEmailCode(req, res, () => { });
+
     const newUser = await prisma.user.create({
       data: {
         email,
@@ -93,7 +98,7 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 export const getUser = async (req: Request, res: Response) => {
-  const { id } = req.body.user;
+  const { id } = req.body.auth;
   if (!id) {
     return res.status(400).json({ error: "User ID is required." });
   }
@@ -162,18 +167,18 @@ export const updateEmail = async (req: Request, res: Response) => {
         return res.status(401).json({ error: "Incorrect password." });
       }
     }
-
     // 使用旧邮箱验证码验证
     else if (oldEmailCode && oldEmailCode.trim() !== '') {
-      req.body.verify.email = user.email;
-      req.body.verify.code = oldEmailCode;
+      req.body.verify = { email: oldEmailCode, code: oldEmailCode };
       await verifyEmailCode(req, res, () => { });
+    }
+    else {
+      return res.status(400).json({ error: "Incorrect update email ways." });
     }
 
     // 验证新邮箱验证码
     if (newEmail && newEmailCode) {
-      req.body.verify.email = newEmail;
-      req.body.verify.code = newEmailCode;
+      req.body.verify = { email: newEmail, code: newEmailCode };
       await verifyEmailCode(req, res, () => { });
     }
 
@@ -213,12 +218,13 @@ export const updatePassword = async (req: Request, res: Response) => {
         return res.status(401).json({ error: "Incorrect password." });
       }
     }
-
     // 使用邮箱验证码验证
     else if (verifyCode && verifyCode.trim() !== '') {
-      req.body.verify.email = user.email;
-      req.body.verify.code = verifyCode;
+      req.body.verify = { email: user.email, code: verifyCode };
       await verifyEmailCode(req, res, () => { });
+    }
+    else {
+      return res.status(400).json({ error: "Incorrect update password ways." });
     }
 
     await prisma.user.update({

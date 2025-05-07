@@ -9,8 +9,8 @@ const EMAIL_CODE_EXPIRATION = 300;
 
 let transporter = nodemailer.createTransport({
     host: 'smtp.126.com',
-    port: 465,
-    secure: true,
+    port: 25,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -34,7 +34,7 @@ export const sendEmailCode: (req: Request, res: Response) => Promise<Response<an
 
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
-            to: user.email,
+            to: verify.email,
             subject: 'Your Verification Code',
             text: `Your verification code is: ${code}`,
         });
