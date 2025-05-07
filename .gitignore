@@ -10,6 +10,9 @@ build/
 *.env
 !.env.example
 
+**/*.key
+!**/*.example.key
+
 # 忽略自动生成的文档
 docs/api/
 docs/build/
