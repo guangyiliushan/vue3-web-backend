@@ -13,7 +13,7 @@ import { getPrivateKey, getPublicKey, getSymmetricKey } from '@utils/key';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const unlessPaths = ['/', '/test', '/user/login', '/user/salt', '/user/register'];
+    const unlessPaths = ['/', '/test', '/user/login', '/user/salt', '/user/register','/verify/email', '/verify/phone'];
 
     if (unlessPaths.includes(req.path)) {
       return next();

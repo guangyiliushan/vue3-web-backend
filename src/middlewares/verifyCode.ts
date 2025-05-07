@@ -8,7 +8,7 @@ const redis = new Redis();
 const EMAIL_CODE_EXPIRATION = 300;
 
 let transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    host: 'smtp.126.com',
     port: 465,
     secure: true,
     auth: {
@@ -20,13 +20,15 @@ let transporter = nodemailer.createTransport({
 // 发送邮箱验证码中间件
 export const sendEmailCode: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>> = async (req, res) => {
     const { user } = req.body;
-    if (!user || !user.email || !user.id) {
+    const { verify } =req.body;
+
+    if (!user || !verify.email || !user.id) {
         return res.status(400).json({ error: 'User email and ID are required.' });
     }
 
     try {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const key = `verify:email:code:${user.id}:${user.email}`;
+        const key = `verify:email:code:${user.id}:${verify.email}`;
 
         await redis.set(key, code, 'EX', EMAIL_CODE_EXPIRATION);
 
@@ -47,20 +49,21 @@ export const sendEmailCode: (req: Request, res: Response) => Promise<Response<an
 // 验证邮箱验证码中间件
 export const verifyEmailCode: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined> = async (req, res, next) => {
     const { user } = req.body;
+    const { verify } =req.body;
 
-    if (!user || !user.email || !user.id || !user.verifyCode) {
+    if (!user || !verify.email || !user.id || !verify.code) {
         return res.status(400).json({ error: 'User email, ID, and verification code are required.' });
     }
 
     try {
-        const key = `verify:email:code:${user.id}:${user.email}`;
+        const key = `verify:email:code:${user.id}:${verify.email}`;
         const storedCode = await redis.get(key);
 
         if (!storedCode) {
             return res.status(400).json({ error: 'Verification code expired or not found.' });
         }
 
-        if (storedCode !== user.verifyCode) {
+        if (storedCode !== verify.code) {
             return res.status(400).json({ error: 'Invalid verification code.' });
         }
         await redis.del(key);
@@ -74,14 +77,15 @@ export const verifyEmailCode: (req: Request, res: Response, next: NextFunction) 
 // 发送手机验证码中间件（预留）
 export const sendPhoneCode: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>> = async (req, res) => {
     const { user } = req.body;
+    const { verify } =req.body;
 
-    if (!user || !user.phone || !user.id) {
+    if (!user || !verify.phone || !user.id) {
         return res.status(400).json({ error: 'User phone and ID are required.' });
     }
 
     try {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const key = `verify:phone:code:${user.id}:${user.phone}`;
+        const key = `verify:phone:code:${user.id}:${verify.phone}`;
         await redis.setex(key, EMAIL_CODE_EXPIRATION, code);
 
         // await sendSMS(user.phone, `Your verification code is: ${code}`);
@@ -96,20 +100,21 @@ export const sendPhoneCode: (req: Request, res: Response) => Promise<Response<an
 // 验证手机验证码中间件（预留）
 export const verifyPhoneCode: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined> = async (req, res, next) => {
     const { user } = req.body;
+    const { verify } =req.body;
 
-    if (!user || !user.phone || !user.id || !user.verifyCode) {
+    if (!user || !verify.phone || !user.id || !verify.code) {
         return res.status(400).json({ error: 'User phone, ID, and verification code are required.' });
     }
 
     try {
-        const key = `verify:phone:code:${user.id}:${user.phone}`;
+        const key = `verify:phone:code:${user.id}:${verify.phone}`;
         const storedCode = await redis.get(key);
 
         if (!storedCode) {
             return res.status(400).json({ error: 'Verification code expired or not found.' });
         }
 
-        if (storedCode !== user.verifyCode) {
+        if (storedCode !== verify.code) {
             return res.status(400).json({ error: 'Invalid verification code.' });
         }
         await redis.del(key);

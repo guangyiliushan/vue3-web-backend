@@ -113,8 +113,7 @@ export const getUser = async (req: Request, res: Response) => {
 };
 
 export const updateUsername = async (req: Request, res: Response) => {
-  const { id } = req.body.user;
-  const { username } = req.body.user;
+  const { id, username } = req.body.user;
 
   if (!id || !username) {
     return res
@@ -139,7 +138,7 @@ export const updateUsername = async (req: Request, res: Response) => {
 
 export const updateEmail = async (req: Request, res: Response) => {
   const { user } = req.body;
-  const { id, email, verifyCode, password, newEmail, newEmailCode } = user;
+  const { id, oldEmailCode, password, newEmail, newEmailCode } = user;
 
   if (!id || !newEmail || !newEmailCode) {
     return res.status(400).json({
@@ -149,26 +148,33 @@ export const updateEmail = async (req: Request, res: Response) => {
   }
 
   try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    if (user.email === newEmail) {
+      return res.status(400).json({ error: "New email cannot be the same as old email." });
+    }
     // 使用密码验证
-    if (password) {
-      const user = await prisma.user.findUnique({ where: { id } });
-      if (!user) {
-        return res.status(404).json({ error: "User not found." }); 
-      }
-      if (user.password!== password) {
-        return res.status(401).json({ error: "Incorrect password." }); 
+    if (password && password.trim() !== '') {
+      if (user.password !== password) {
+        return res.status(401).json({ error: "Incorrect password." });
       }
     }
-    // 使用邮箱验证码验证
-    if (email && verifyCode) {
-      await verifyEmailCode(req, res, () => {});
+
+    // 使用旧邮箱验证码验证
+    else if (oldEmailCode && oldEmailCode.trim() !== '') {
+      req.body.verify.email = user.email;
+      req.body.verify.code = oldEmailCode;
+      await verifyEmailCode(req, res, () => { });
     }
 
     // 验证新邮箱验证码
     if (newEmail && newEmailCode) {
-      req.body.user.email = newEmail;
-      req.body.user.verifyCode = newEmailCode;
-      await verifyEmailCode(req, res, () => {});
+      req.body.verify.email = newEmail;
+      req.body.verify.code = newEmailCode;
+      await verifyEmailCode(req, res, () => { });
     }
 
     // 更新邮箱
@@ -186,7 +192,7 @@ export const updateEmail = async (req: Request, res: Response) => {
 
 export const updatePassword = async (req: Request, res: Response) => {
   const { user } = req.body;
-  const { id, password, verifyCode, newPassword, newSalt } = user;
+  const { id, oldPassword, verifyCode, newPassword, newSalt } = user;
 
   if (!id || !newPassword || !newSalt) {
     return res
@@ -202,24 +208,17 @@ export const updatePassword = async (req: Request, res: Response) => {
     }
 
     // 使用旧密码验证
-    if (password) {
-      const oldPasswordHash = await prisma.user.findUnique({
-        where: { id },
-        select: { password: true },
-      });
-      if (!oldPasswordHash) {
-        return res.status(404).json({ error: "User not found." });
-      }
-      if (oldPasswordHash.password !== password) {
-        return res.status(401).json({ error: "Incorrect old password." });
+    if (oldPassword && oldPassword.trim() !== '' && oldPassword !== newPassword) {
+      if (user.password !== oldPassword) {
+        return res.status(401).json({ error: "Incorrect password." });
       }
     }
 
     // 使用邮箱验证码验证
-    else if (verifyCode) {
-      req.body.user.email = user.email;
-      req.body.user.verifyCode = verifyCode;
-      await verifyEmailCode(req, res, () => {});
+    else if (verifyCode && verifyCode.trim() !== '') {
+      req.body.verify.email = user.email;
+      req.body.verify.code = verifyCode;
+      await verifyEmailCode(req, res, () => { });
     }
 
     await prisma.user.update({
