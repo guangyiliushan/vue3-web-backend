@@ -1,20 +1,28 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE "user" (
+    "user_id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "salt" TEXT NOT NULL,
+    "username" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  - You are about to drop the column `category` on the `post` table. All the data in the column will be lost.
-  - You are about to drop the column `tags` on the `post` table. All the data in the column will be lost.
+    CONSTRAINT "user_pkey" PRIMARY KEY ("user_id")
+);
 
-*/
--- DropIndex
-DROP INDEX "post_category_idx";
+-- CreateTable
+CREATE TABLE "post" (
+    "post_id" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "title" TEXT NOT NULL,
+    "content" TEXT,
+    "time_to_read" INTEGER NOT NULL DEFAULT 0,
+    "view_count" INTEGER NOT NULL DEFAULT 0,
+    "category_id" TEXT,
 
--- DropIndex
-DROP INDEX "post_tags_idx";
-
--- AlterTable
-ALTER TABLE "post" DROP COLUMN "category",
-DROP COLUMN "tags",
-ADD COLUMN     "category_id" TEXT;
+    CONSTRAINT "post_pkey" PRIMARY KEY ("post_id")
+);
 
 -- CreateTable
 CREATE TABLE "comment" (
@@ -53,6 +61,9 @@ CREATE TABLE "_PostToTags" (
 
     CONSTRAINT "_PostToTags_AB_pkey" PRIMARY KEY ("A","B")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
 -- CreateIndex
 CREATE INDEX "comment_post_id_idx" ON "comment"("post_id");
