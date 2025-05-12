@@ -17,7 +17,6 @@ export const getPostList = async (params: PostQueryParams) => {
     title: { contains: search },
     ...(category && { categoryId: category }),
   };
-  console.log('where', where);
   const posts = await prisma.post.findMany({
     where,
     skip: (page - 1) * pageSize,
@@ -48,9 +47,9 @@ export const getPostDetails = async (id: string) => {
   return prisma.post.findUnique({
     where: { id },
     include: {
-      tags: true, // 移除嵌套的 include
+      tags: true,
       category: true,
       comments: true,
-    },
+    }
   });
 };

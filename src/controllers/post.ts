@@ -5,7 +5,7 @@ import { getPostList, getPostDetails } from '@services/postService';
 export const getPosts = async (req: Request, res: Response) => {
   try {
     const { page = 1, pageSize = 10, search = '', category = '', isTimeline = false } = req.query;
-    console.log('getPosts', { page, pageSize, search, category, isTimeline });
+
     const result = await getPostList({
       page: Number(page),
       pageSize: Number(pageSize),
@@ -13,7 +13,6 @@ export const getPosts = async (req: Request, res: Response) => {
       category: String(category),
       isTimeline: isTimeline === 'true',
     });
-    console.log('result', result);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch posts' });

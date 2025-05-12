@@ -6,7 +6,6 @@ const router = express.Router();
 // 获取文章列表
 router.get('/', async (req, res) => { 
     try {
-        console.log('getPosts');
         await getPosts(req, res); 
     } catch (error) {
          res.status(500).send({ error: 'Internal Server Error' });
