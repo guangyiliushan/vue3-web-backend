@@ -4,7 +4,15 @@ import { getPostList, getPostDetails } from '@services/postService';
 // 获取文章列表
 export const getPosts = async (req: Request, res: Response) => {
   try {
-    const { page = 1, pageSize = 10, search = '', category = '', isTimeline = false } = req.query;
+    const {
+      page = '1',
+      pageSize = '5',
+      search = '',
+      category = '',
+      isTimeline = 'false',
+      cursor = null,
+      direction = 'next',
+    } = req.query;
 
     const result = await getPostList({
       page: Number(page),
@@ -12,10 +20,12 @@ export const getPosts = async (req: Request, res: Response) => {
       search: String(search),
       category: String(category),
       isTimeline: isTimeline === 'true',
+      cursor: cursor ? JSON.parse(String(cursor)) : null,
+      direction: direction === 'prev' ? 'prev' : 'next',
     });
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch posts' });
+    res.status(500).json({ error: 'Failed to fetch posts'+ error });
   }
 };
 
