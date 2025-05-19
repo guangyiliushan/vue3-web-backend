@@ -23,6 +23,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       '/verify/phone',
       '/post',
       '/post/:id',
+      '/post/categories',
+      '/post/tags',
     ];
 
     if (unlessPaths.includes(req.path)) {

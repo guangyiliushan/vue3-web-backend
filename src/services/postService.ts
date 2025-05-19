@@ -7,7 +7,7 @@ interface PostQueryParams {
   pageSize?: number;
   search?: string;
   category?: string;
-  isTimeline?: boolean;
+  timeline?: boolean;
   cursor?: { createdAt: Date; id: string } | null;
   direction?: 'next' | 'prev';
 }
@@ -31,7 +31,7 @@ export const getPostList = async (params: PostQueryParams) => {
     pageSize = 10,
     search = '',
     category = '',
-    isTimeline = false,
+    timeline = false,
     cursor = null,
     direction = 'next',
   } = params;
@@ -42,7 +42,7 @@ export const getPostList = async (params: PostQueryParams) => {
   };
 
   // 时间线查询
-  if (isTimeline) {
+  if (timeline) {
     const posts = await prisma.post.findMany({
       where,
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
@@ -52,7 +52,6 @@ export const getPostList = async (params: PostQueryParams) => {
         createdAt: true,
       },
     });
-
     return {
       posts,
       pagination: {
@@ -166,8 +165,6 @@ export const getPostList = async (params: PostQueryParams) => {
     const paginatedPosts = hasPrevPage
       ? reversedPosts.slice(1, pageSize + 1)
       : reversedPosts;
-
-    console.log(paginatedPosts);
     return {
       posts: paginatedPosts,
       pagination: {
