@@ -35,7 +35,6 @@ export const registerUser = async (req: Request, res: Response) => {
       user: { id: newUser.id, email: newUser.email },
     });
   } catch (error: any) {
-    console.error(error);
     if (error.code === "P2002") {
       return res
         .status(400)
@@ -59,7 +58,6 @@ export const getSalt = async (req: Request, res: Response) => {
     }
     return res.status(200).json({ salt: user.salt });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Internal server error." });
   }
 };
@@ -92,7 +90,6 @@ export const loginUser = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: "Login successful.", token, refreshToken });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Internal server error." });
   }
 };
@@ -112,7 +109,6 @@ export const getUser = async (req: Request, res: Response) => {
     }
     return res.status(200).json({ user });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Internal server error." });
   }
 };
@@ -136,7 +132,6 @@ export const updateUsername = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: "Username updated successfully.", user: updatedUser });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Failed to update username." });
   }
 };
@@ -190,7 +185,6 @@ export const updateEmail = async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: "Email updated successfully." });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Failed to update email." });
   }
 };
@@ -234,7 +228,6 @@ export const updatePassword = async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: "Password updated successfully." });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Failed to update password." });
   }
 };

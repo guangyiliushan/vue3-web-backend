@@ -41,7 +41,6 @@ export const sendEmailCode: (req: Request, res: Response) => Promise<Response<an
 
         return res.status(200).json({ message: 'Verification code sent successfully.' });
     } catch (error) {
-        console.error(error);
         return res.status(500).json({ error: 'Failed to send verification code.' });
     }
 };
@@ -70,7 +69,6 @@ export const verifyEmailCode: (req: Request, res: Response, next: NextFunction) 
 
         next();
     } catch (error) {
-        console.error(error);
         return res.status(500).json({ error: 'Failed to verify code.' });
     }
 };
@@ -92,7 +90,6 @@ export const sendPhoneCode: (req: Request, res: Response) => Promise<Response<an
 
         return res.status(200).json({ message: 'Verification code sent successfully.' });
     } catch (error) {
-        console.error(error);
         return res.status(500).json({ error: 'Failed to send verification code.' });
     }
 };
@@ -121,7 +118,6 @@ export const verifyPhoneCode: (req: Request, res: Response, next: NextFunction) 
 
         next();
     } catch (error) {
-        console.error(error);
         return res.status(500).json({ error: 'Failed to verify code.' });
     }
 };

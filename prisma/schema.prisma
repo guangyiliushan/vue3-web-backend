@@ -8,28 +8,29 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid()) @map("user_id")
-  email     String   @unique @map("email")
-  password  String   @map("password")
-  salt      String   @map("salt")
-  username  String?  @default(cuid()) @map("username")
-  createdAt DateTime @default(now()) @map("created_at")
+  id        String    @id @default(uuid()) @map("user_id")
+  email     String    @unique @map("email")
+  password  String    @map("password")
+  salt      String    @map("salt")
+  username  String?   @default(cuid()) @map("username")
+  createdAt DateTime  @default(now()) @map("created_at")
   comments  Comment[] @relation("UserToComment")
 
   @@map("user")
 }
 
 model Post {
-  id         String   @id @default(uuid()) @map("post_id")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  title      String   @map("title")
-  content    String?  @map("content")
-  timeToRead Int      @default(0) @map("time_to_read")
-  viewCount  Int      @default(0) @map("view_count")
-  categoryId String?  @map("category_id")
+  id         String    @id @default(uuid()) @map("post_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  title      String    @map("title")
+  content    String?   @map("content")
+  timeToRead Int       @default(0) @map("time_to_read")
+  views      Int       @default(0) @map("view_count")
+  likes      Int       @default(0) @map("like_count")
+  categoryId String?   @map("category_id")
   category   Category? @relation(fields: [categoryId], references: [id])
-  tags       Tag[] @relation("PostToTags")
+  tags       Tag[]     @relation("PostToTags")
   comments   Comment[] @relation("PostToComment")
 
   @@map("post")
@@ -42,8 +43,8 @@ model Comment {
   content   String   @map("content")
   postId    String   @map("post_id")
   userId    String?  @map("user_id")
-  post Post? @relation("PostToComment", fields: [postId], references: [id])
-  user User? @relation("UserToComment", fields: [userId], references: [id])
+  post      Post?    @relation("PostToComment", fields: [postId], references: [id])
+  user      User?    @relation("UserToComment", fields: [userId], references: [id])
 
   @@index([postId])
   @@index([userId])
@@ -63,7 +64,7 @@ model Tag {
   id        String   @id @default(uuid()) @map("tag_id")
   name      String   @unique @map("name")
   createdAt DateTime @default(now()) @map("created_at")
-  posts     Post[] @relation("PostToTags")
+  posts     Post[]   @relation("PostToTags")
 
   @@map("tag")
 }
