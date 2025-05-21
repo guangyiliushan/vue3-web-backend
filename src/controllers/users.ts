@@ -1,22 +1,21 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { getPrivateKey, getSymmetricKey } from "@utils/key";
-import { verifyEmailCode } from "@middlewares/verifyCode";
+import { verifyEmailCode } from "@services/verifyService";
+import { ValidationError, NotFoundError, AuthenticationError, ConflictError } from "@middlewares/error";
 
 const prisma = new PrismaClient();
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password, salt, verifyCode } = req.body;
   if (!email || !password || !salt || !verifyCode) {
-    return res
-      .status(400)
-      .json({ error: "Email, password, verifyCode and salt are required." });
+    return next(new ValidationError("Email, password, verifyCode and salt are required."));
   }
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ error: "Email is already in use." });
+      return next(new ConflictError("Email is already in use."));
     }
 
     req.body.user = { id: "register", };
@@ -30,50 +29,50 @@ export const registerUser = async (req: Request, res: Response) => {
         salt,
       },
     });
-    return res.status(201).json({
+
+    res.status(201);
+    res.success({
       message: "User registered successfully.",
-      user: { id: newUser.id, email: newUser.email },
+      user: { id: newUser.id, email: newUser.email }
     });
   } catch (error: any) {
     if (error.code === "P2002") {
-      return res
-        .status(400)
-        .json({ error: "A user with this email already exists." });
+      next(new ConflictError("A user with this email already exists."));
+    } else {
+      next(error);
     }
-    return res
-      .status(500)
-      .json({ error: error.message || "Internal server error." });
   }
 };
 
-export const getSalt = async (req: Request, res: Response) => {
+export const getSalt = async (req: Request, res: Response, next: NextFunction) => {
   const { email } = req.body;
   if (!email) {
-    return res.status(400).json({ error: "Email is required." });
+    return next(new ValidationError("Email is required."));
   }
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(404).json({ error: "Email not found." });
+      return next(new NotFoundError("Email not found."));
     }
-    return res.status(200).json({ salt: user.salt });
+
+    res.success({ salt: user.salt });
   } catch (error) {
-    return res.status(500).json({ error: "Internal server error." });
+    next(error);
   }
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required." });
+    return next(new ValidationError("Email and password are required."));
   }
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(401).json({ error: "Email not found." });
+      return next(new AuthenticationError("Email not found."));
     }
     if (user.password !== password) {
-      return res.status(401).json({ error: "Invalid password." });
+      return next(new AuthenticationError("Invalid password."));
     }
     const privateKey = getPrivateKey();
     const symmetricKey = getSymmetricKey();
@@ -86,18 +85,16 @@ export const loginUser = async (req: Request, res: Response) => {
       expiresIn: "7d",
     });
 
-    return res
-      .status(200)
-      .json({ message: "Login successful.", token, refreshToken });
+    res.success({ message: "Login successful.", token, refreshToken });
   } catch (error) {
-    return res.status(500).json({ error: "Internal server error." });
+    next(error);
   }
 };
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.body.auth;
   if (!id) {
-    return res.status(400).json({ error: "User ID is required." });
+    return next(new ValidationError("User ID is required."));
   }
   try {
     const user = await prisma.user.findUnique({
@@ -105,21 +102,21 @@ export const getUser = async (req: Request, res: Response) => {
       select: { id: true, email: true, username: true, createdAt: true },
     });
     if (!user) {
-      return res.status(404).json({ error: "User not found." });
+      return next(new NotFoundError("User not found."));
     }
-    return res.status(200).json({ user });
+
+    // 使用 res.success 返回数据
+    res.success({ user });
   } catch (error) {
-    return res.status(500).json({ error: "Internal server error." });
+    next(error);
   }
 };
 
-export const updateUsername = async (req: Request, res: Response) => {
+export const updateUsername = async (req: Request, res: Response, next: NextFunction) => {
   const { id, username } = req.body.user;
 
   if (!id || !username) {
-    return res
-      .status(400)
-      .json({ error: "User ID and username are required." });
+    return next(new ValidationError("User ID and username are required."));
   }
 
   try {
@@ -128,38 +125,38 @@ export const updateUsername = async (req: Request, res: Response) => {
       data: { username },
     });
 
-    return res
-      .status(200)
-      .json({ message: "Username updated successfully.", user: updatedUser });
+    // 使用 res.success 返回数据
+    res.success({
+      message: "Username updated successfully.",
+      user: updatedUser,
+    });
   } catch (error) {
-    return res.status(500).json({ error: "Failed to update username." });
+    next(error);
   }
 };
 
-export const updateEmail = async (req: Request, res: Response) => {
+export const updateEmail = async (req: Request, res: Response, next: NextFunction) => {
   const { user } = req.body;
   const { id, oldEmailCode, password, newEmail, newEmailCode } = user;
 
   if (!id || !newEmail || !newEmailCode) {
-    return res.status(400).json({
-      error:
-        "User ID, new email, and new email verification code are required.",
-    });
+    return next(new ValidationError("User ID, new email, and new email verification code are required."));
   }
 
   try {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
-      return res.status(404).json({ error: "User not found." });
+      return next(new NotFoundError("User not found."));
     }
 
     if (user.email === newEmail) {
-      return res.status(400).json({ error: "New email cannot be the same as old email." });
+      return next(new ConflictError("New email cannot be the same as old email."));
     }
+
     // 使用密码验证
     if (password && password.trim() !== '') {
       if (user.password !== password) {
-        return res.status(401).json({ error: "Incorrect password." });
+        return next(new AuthenticationError("Incorrect password."));
       }
     }
     // 使用旧邮箱验证码验证
@@ -168,7 +165,7 @@ export const updateEmail = async (req: Request, res: Response) => {
       await verifyEmailCode(req, res, () => { });
     }
     else {
-      return res.status(400).json({ error: "Incorrect update email ways." });
+      return next(new ValidationError("Incorrect update email ways."));
     }
 
     // 验证新邮箱验证码
@@ -183,33 +180,31 @@ export const updateEmail = async (req: Request, res: Response) => {
       data: { email: newEmail },
     });
 
-    return res.status(200).json({ message: "Email updated successfully." });
+    res.success({ message: "Email updated successfully." });
   } catch (error) {
-    return res.status(500).json({ error: "Failed to update email." });
+    next(error);
   }
 };
 
-export const updatePassword = async (req: Request, res: Response) => {
+export const updatePassword = async (req: Request, res: Response, next: NextFunction) => {
   const { user } = req.body;
   const { id, oldPassword, verifyCode, newPassword, newSalt } = user;
 
   if (!id || !newPassword || !newSalt) {
-    return res
-      .status(400)
-      .json({ error: "User ID and new password are required." });
+    return next(new ValidationError("User ID and new password are required."));
   }
 
   try {
     const user = await prisma.user.findUnique({ where: { id } });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found." });
+      return next(new NotFoundError("User not found."));
     }
 
     // 使用旧密码验证
     if (oldPassword && oldPassword.trim() !== '' && oldPassword !== newPassword) {
       if (user.password !== oldPassword) {
-        return res.status(401).json({ error: "Incorrect password." });
+        return next(new AuthenticationError("Incorrect password."));
       }
     }
     // 使用邮箱验证码验证
@@ -218,7 +213,7 @@ export const updatePassword = async (req: Request, res: Response) => {
       await verifyEmailCode(req, res, () => { });
     }
     else {
-      return res.status(400).json({ error: "Incorrect update password ways." });
+      return next(new ValidationError("Incorrect update password ways."));
     }
 
     await prisma.user.update({
@@ -226,8 +221,8 @@ export const updatePassword = async (req: Request, res: Response) => {
       data: { password: newPassword, salt: newSalt },
     });
 
-    return res.status(200).json({ message: "Password updated successfully." });
+    res.success({ message: "Password updated successfully." });
   } catch (error) {
-    return res.status(500).json({ error: "Failed to update password." });
+    next(error);
   }
 };

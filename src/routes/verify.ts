@@ -1,12 +1,15 @@
 import { Router, Request, Response, NextFunction } from 'express';
-
-import { sendEmailCode , sendPhoneCode} from '@middlewares/verifyCode';
+import { sendEmailCode , sendPhoneCode} from '@services/verifyService';
 
 const router = Router();
 
+router.get('/', (req: Request, res: Response) => {
+  res.send('verify'); 
+})
+
 router.put('/email', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await sendEmailCode(req, res);
+    await sendEmailCode(req, res , next);
   }
   catch (err) {
     next(err);
@@ -15,7 +18,7 @@ router.put('/email', async (req: Request, res: Response, next: NextFunction) => 
 
 router.put('/phone', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await sendPhoneCode(req, res);
+    await sendPhoneCode(req, res , next);
   }
   catch (err) {
     next(err);
