@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { getPrivateKey, getSymmetricKey } from "@utils/key";
-import { verifyEmailCode } from "@services/verifyService";
+import { verifyEmailCode } from "@controllers/verify";
 import { ValidationError, NotFoundError, AuthenticationError, ConflictError } from "@middlewares/error";
 
 const prisma = new PrismaClient();
