@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { getPrivateKey, getSymmetricKey } from "@utils/key";
-import { verifyEmailCode } from "@controllers/verify";
+import { validateEmailCode } from "@services/verifyService";
 import { ValidationError, NotFoundError, AuthenticationError, ConflictError } from "@middlewares/error";
 
 const prisma = new PrismaClient();
@@ -17,10 +17,10 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     if (existingUser) {
       return next(new ConflictError("Email is already in use."));
     }
-
-    req.body.user = { id: "register", };
-    req.body.verify = { email, code: verifyCode };
-    await verifyEmailCode(req, res, () => { });
+    const verifyResult = await validateEmailCode("register", email, verifyCode);
+    if (!verifyResult.valid) {
+      return next(new ValidationError(verifyResult.message || "Invalid verification code."));
+    }
 
     const newUser = await prisma.user.create({
       data: {
@@ -30,8 +30,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
       },
     });
 
-    res.status(201);
-    res.success({
+    return res.success({
       message: "User registered successfully.",
       user: { id: newUser.id, email: newUser.email }
     });
@@ -161,8 +160,11 @@ export const updateEmail = async (req: Request, res: Response, next: NextFunctio
     }
     // 使用旧邮箱验证码验证
     else if (oldEmailCode && oldEmailCode.trim() !== '') {
-      req.body.verify = { email: oldEmailCode, code: oldEmailCode };
-      await verifyEmailCode(req, res, () => { });
+      // 直接使用服务层函数进行验证
+      const oldEmailResult = await validateEmailCode(id, user.email, oldEmailCode);
+      if (!oldEmailResult.valid) {
+        return next(new ValidationError(oldEmailResult.message || "Invalid old email verification code."));
+      }
     }
     else {
       return next(new ValidationError("Incorrect update email ways."));
@@ -170,8 +172,11 @@ export const updateEmail = async (req: Request, res: Response, next: NextFunctio
 
     // 验证新邮箱验证码
     if (newEmail && newEmailCode) {
-      req.body.verify = { email: newEmail, code: newEmailCode };
-      await verifyEmailCode(req, res, () => { });
+      // 直接使用服务层函数进行验证
+      const newEmailResult = await validateEmailCode(id, newEmail, newEmailCode);
+      if (!newEmailResult.valid) {
+        return next(new ValidationError(newEmailResult.message || "Invalid new email verification code."));
+      }
     }
 
     // 更新邮箱
@@ -180,9 +185,9 @@ export const updateEmail = async (req: Request, res: Response, next: NextFunctio
       data: { email: newEmail },
     });
 
-    res.success({ message: "Email updated successfully." });
+    return res.success({ message: "Email updated successfully." });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -209,8 +214,11 @@ export const updatePassword = async (req: Request, res: Response, next: NextFunc
     }
     // 使用邮箱验证码验证
     else if (verifyCode && verifyCode.trim() !== '') {
-      req.body.verify = { email: user.email, code: verifyCode };
-      await verifyEmailCode(req, res, () => { });
+      // 直接使用服务层函数进行验证
+      const verifyResult = await validateEmailCode(id, user.email, verifyCode);
+      if (!verifyResult.valid) {
+        return next(new ValidationError(verifyResult.message || "Invalid email verification code."));
+      }
     }
     else {
       return next(new ValidationError("Incorrect update password ways."));
@@ -221,8 +229,8 @@ export const updatePassword = async (req: Request, res: Response, next: NextFunc
       data: { password: newPassword, salt: newSalt },
     });
 
-    res.success({ message: "Password updated successfully." });
+    return res.success({ message: "Password updated successfully." });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
