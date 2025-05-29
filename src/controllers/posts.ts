@@ -1,6 +1,7 @@
 import { Request, Response , NextFunction } from 'express';
 import { getPostList, getPostDetails } from '@services/postService';
 import { PrismaClient } from '@prisma/client';
+import { NotFoundError } from '@middlewares/error';
 
 const prisma = new PrismaClient();
 
@@ -38,7 +39,7 @@ export const getPostById = async (req: Request, res: Response, next: NextFunctio
     const { id } = req.params;
     const post = await getPostDetails(String(id));
     if (!post) {
-      return next(new Error('Post not found'));
+      return next(new NotFoundError('Post not found'));
     }
     res.success(post);
   } catch (error) {

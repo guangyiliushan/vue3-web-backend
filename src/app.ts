@@ -23,9 +23,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use('/post', postRoutes);
-
-
 app.use('/verify', verifyRoutes);
 app.use('/posts', postRoutes);
 app.use('/users', userRoutes);

@@ -7,7 +7,7 @@ router.get('/', (req: Request, res: Response) => {
   res.send('verify');
 })
 
-router.put('/email', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/email/check', async (req: Request, res: Response, next: NextFunction) => {
   try {
     await verifyEmailCode(req, res, next);
   }
@@ -16,7 +16,7 @@ router.put('/email', async (req: Request, res: Response, next: NextFunction) => 
   }
 })
 
-router.put('/phone', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/phone/send', async (req: Request, res: Response, next: NextFunction) => {
   try {
     await verifyPhoneCode(req, res, next);
   }
@@ -25,7 +25,7 @@ router.put('/phone', async (req: Request, res: Response, next: NextFunction) => 
   } 
 })
 
-router.put('/send/email', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/email/send', async (req: Request, res: Response, next: NextFunction) => {
   try {
     await sendEmailCode(req, res, next);
   }
