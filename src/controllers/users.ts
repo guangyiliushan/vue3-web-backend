@@ -160,7 +160,6 @@ export const updateEmail = async (req: Request, res: Response, next: NextFunctio
     }
     // 使用旧邮箱验证码验证
     else if (oldEmailCode && oldEmailCode.trim() !== '') {
-      // 直接使用服务层函数进行验证
       const oldEmailResult = await validateEmailCode(id, user.email, oldEmailCode);
       if (!oldEmailResult.valid) {
         return next(new ValidationError(oldEmailResult.message || "Invalid old email verification code."));
@@ -172,11 +171,19 @@ export const updateEmail = async (req: Request, res: Response, next: NextFunctio
 
     // 验证新邮箱验证码
     if (newEmail && newEmailCode) {
-      // 直接使用服务层函数进行验证
+      await prisma.user.findUnique({ where: { email: newEmail } })
+        .then(existingUser => {
+          if (existingUser) {
+            return next(new ConflictError("New email is already in use."));
+          }
+        });
       const newEmailResult = await validateEmailCode(id, newEmail, newEmailCode);
       if (!newEmailResult.valid) {
         return next(new ValidationError(newEmailResult.message || "Invalid new email verification code."));
       }
+    }
+    else {
+      return next(new ValidationError("New email and new email verification code are required."));
     }
 
     // 更新邮箱
