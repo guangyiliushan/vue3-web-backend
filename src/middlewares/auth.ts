@@ -16,15 +16,17 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const unlessPaths = [
       '/',
       '/test',
-      '/user/login',
-      '/user/salt',
-      '/user/register',
-      '/verify/email',
-      '/verify/phone',
-      '/post',
-      '/post/:id',
-      '/post/categories',
-      '/post/tags',
+      '/users/login',
+      '/users/salt',
+      '/users/register',
+      '/verify/email/send',
+      '/verify/email/check',
+      '/verify/phone/send',
+      '/verify/phone/check',
+      '/posts',
+      '/posts/:id',
+      '/posts/categories',
+      '/posts/tags',
     ];
 
     if (unlessPaths.includes(req.path)) {
@@ -79,11 +81,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         resolve();
       });
     });
-
     next();
   } catch (error) {
-    if (!res.headersSent) {
-      res.status(401).json({ error: 'Unauthorized' });
-    }
+    next(error);
   }
 };
