@@ -13,7 +13,21 @@ import { getPrivateKey, getPublicKey, getSymmetricKey } from '@utils/key';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const unlessPaths = ['/', '/test', '/user/login', '/user/salt', '/user/register','/verify/email', '/verify/phone'];
+    const unlessPaths = [
+      '/',
+      '/test',
+      '/users/login',
+      '/users/salt',
+      '/users/register',
+      '/verify/email/send',
+      '/verify/email/check',
+      '/verify/phone/send',
+      '/verify/phone/check',
+      '/posts',
+      '/posts/:id',
+      '/posts/categories',
+      '/posts/tags',
+    ];
 
     if (unlessPaths.includes(req.path)) {
       return next();
@@ -67,11 +81,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         resolve();
       });
     });
-
     next();
   } catch (error) {
-    if (!res.headersSent) {
-      res.status(401).json({ error: 'Unauthorized' });
-    }
+    next(error);
   }
 };

@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid()) @map("user_id")
+  email     String    @unique @map("email")
+  password  String    @map("password")
+  salt      String    @map("salt")
+  username  String?   @default(cuid()) @map("username")
+  createdAt DateTime  @default(now()) @map("created_at")
+  comments  Comment[] @relation("UserToComment")
+
+  @@map("user")
+}
+
+model Post {
+  id         String    @id @default(uuid()) @map("post_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  title      String    @map("title")
+  content    String?   @map("content")
+  timeToRead Int       @default(0) @map("time_to_read")
+  views      Int       @default(0) @map("view_count")
+  likes      Int       @default(0) @map("like_count")
+  categoryId String    @map("category_id")
+  category   Category  @relation("CategoryToPost", fields: [categoryId], references: [id], onDelete: Cascade)
+  tags       Tag[]     @relation("PostToTags")
+  comments   Comment[] @relation("PostToComment")
+
+  @@index([categoryId])
+  @@map("post")
+}
+
+model Comment {
+  id        String    @id @default(uuid()) @map("comment_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  content   String    @map("content")
+  postId    String?   @map("post_id")
+  parentId  String?   @map("parent_id")
+  userId    String   @map("user_id")
+  post      Post?     @relation("PostToComment", fields: [postId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentToComment")
+  user      User     @relation("UserToComment", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([parentId])
+  @@index([userId])
+  @@map("comment")
+}
+
+model Category {
+  id        String   @id @default(uuid()) @map("category_id")
+  name      String   @unique @map("name")
+  createdAt DateTime @default(now()) @map("created_at")
+  posts     Post[]   @relation("CategoryToPost")
+
+  @@map("category")
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @map("tag_id")
+  name      String   @unique @map("name")
+  createdAt DateTime @default(now()) @map("created_at")
+  posts     Post[]   @relation("PostToTags")
+
+  @@map("tag")
+}
