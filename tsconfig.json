@@ -18,6 +18,8 @@
       "@routes/*": ["./src/routes/*"],
       "@middlewares/*": ["./src/middlewares/*"],
     },
+    "sourceMap": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"], 
   "exclude": ["node_modules", "dist"]

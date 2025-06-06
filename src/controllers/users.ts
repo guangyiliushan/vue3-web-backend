@@ -172,9 +172,9 @@ export const updateEmail = async (req: Request, res: Response, next: NextFunctio
     // 验证新邮箱验证码
     if (newEmail && newEmailCode) {
       await prisma.user.findUnique({ where: { email: newEmail } })
-        .then(existingUser => {
+        .then((existingUser: any) => {
           if (existingUser) {
-            return next(new ConflictError("New email is already in use."));
+        return next(new ConflictError("New email is already in use."));
           }
         });
       const newEmailResult = await validateEmailCode(id, newEmail, newEmailCode);
