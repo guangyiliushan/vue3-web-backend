@@ -28,8 +28,11 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       '/posts/categories',
       '/posts/tags',
     ];
-
     if (unlessPaths.includes(req.path)) {
+      return next();
+    }
+
+    if (req.path.startsWith('/posts')) {
       return next();
     }
 
